@@ -40,11 +40,13 @@ with st.sidebar:
     years = sorted(product_df["Year Signed"].dropna().unique())
     years = [int(y) for y in years if y > 2000]
     if years:
-        year_range = st.slider("Year Signed", min(years), max(years), (min(years), max(years)))
-        product_df = product_df[
-            (product_df["Year Signed"] >= year_range[0]) &
-            (product_df["Year Signed"] <= year_range[1])
-        ]
+        default_range = (min(years), max(years))
+        year_range = st.slider("Year Signed", default_range[0], default_range[1], default_range)
+        if year_range != default_range:
+            product_df = product_df[
+                (product_df["Year Signed"] >= year_range[0]) &
+                (product_df["Year Signed"] <= year_range[1])
+            ]
 
 filtered = product_df
 st.caption(f"Showing **{len(filtered)}** schools for **{product}**")
@@ -128,11 +130,24 @@ st.divider()
 
 # ── Owner Analysis ──
 if has_owner:
-    st.subheader("👤 Owner / CSM Analysis")
+    st.subheader("👤 Account Manager Analysis")
     col_o1, col_o2 = st.columns(2)
     with col_o1:
         st.plotly_chart(owner_workload(filtered), use_container_width=True)
     with col_o2:
         st.plotly_chart(owner_performance(filtered), use_container_width=True)
 else:
-    st.info(f"ℹ️ Owner data is not available for {product}. Owner analysis is only shown for Hall Pass, Reunification, and Visitor Management.")
+    st.info(f"ℹ️ Account Manager data is not available for {product}. Account Manager analysis is only shown for Hall Pass, Reunification, and Visitor Management.")
+
+# ── Dismissal Extra Phases ──
+if product == "Dismissal" and "Portal Setup Date" in filtered.columns:
+    st.divider()
+    st.subheader("🛠 Dismissal-Specific Milestones")
+    st.caption("Completion of Portal Setup and Pre-Launch Calls")
+    
+    ps_count = filtered["Portal Setup Date"].notna().sum()
+    pl_count = filtered["PreLaunch Call Date"].notna().sum()
+    
+    col_x1, col_x2, col_x3 = st.columns(3)
+    col_x1.metric("Portal Setup Completed", f"{ps_count} ({ps_count/total*100:.0f}%)" if total else "0")
+    col_x2.metric("Pre-Launch Call Completed", f"{pl_count} ({pl_count/total*100:.0f}%)" if total else "0")

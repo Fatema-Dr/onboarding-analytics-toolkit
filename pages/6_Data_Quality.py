@@ -9,7 +9,7 @@ import numpy as np
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from utils.data_loader import load_all_data, get_products, get_cohorts, get_date_columns, PHASES
+from utils.data_loader import load_all_data, get_products, get_cohorts, get_date_columns, get_expected_date_columns, PHASES
 from utils.charts import missing_values_heatmap
 
 st.set_page_config(page_title="Data Quality", page_icon="🔬", layout="wide")
@@ -33,10 +33,13 @@ st.subheader("📊 Overall Data Health Score")
 
 total_cells = 0
 valid_cells = 0
-for col in date_cols:
-    if col in df.columns:
-        total_cells += len(df)
-        valid_cells += df[col].notna().sum()
+for product in get_products():
+    sub = df[df["Product"] == product]
+    expected_cols = get_expected_date_columns(product)
+    for col in expected_cols:
+        if col in sub.columns:
+            total_cells += len(sub)
+            valid_cells += sub[col].notna().sum()
 
 health_pct = valid_cells / total_cells * 100 if total_cells > 0 else 0
 
@@ -68,12 +71,13 @@ for product in get_products():
     if n == 0:
         continue
     row = {"Product": product, "Schools": n}
+    expected_cols = get_expected_date_columns(product)
     for col in date_cols:
-        if col in sub.columns:
+        if col in expected_cols and col in sub.columns:
             pct = (1 - sub[col].isna().sum() / n) * 100
             row[col] = round(pct, 1)
         else:
-            row[col] = 0.0
+            row[col] = np.nan
     product_completeness.append(row)
 
 pc_df = pd.DataFrame(product_completeness).set_index("Product")
@@ -105,16 +109,17 @@ for cohort in get_cohorts():
     if n == 0:
         continue
     row = {"Cohort": cohort, "Schools": n}
+    expected_cols = get_expected_date_columns(selected_product)
     for col in date_cols:
-        if col in sub.columns:
+        if col in expected_cols and col in sub.columns:
             present = sub[col].notna().sum()
             row[f"{col} — Present"] = present
             row[f"{col} — Missing"] = n - present
             row[f"{col} — % Present"] = round(present / n * 100, 1)
         else:
-            row[f"{col} — Present"] = 0
-            row[f"{col} — Missing"] = n
-            row[f"{col} — % Present"] = 0.0
+            row[f"{col} — Present"] = np.nan
+            row[f"{col} — Missing"] = np.nan
+            row[f"{col} — % Present"] = np.nan
     cohort_completeness.append(row)
 
 if cohort_completeness:
@@ -206,8 +211,9 @@ for product in get_products():
         sub = df[df["Product"] == product]
         n = len(sub)
 
+        expected_cols = get_expected_date_columns(product)
         detail_rows = []
-        for col in date_cols:
+        for col in expected_cols:
             if col in sub.columns:
                 present = sub[col].notna().sum()
                 missing = n - present

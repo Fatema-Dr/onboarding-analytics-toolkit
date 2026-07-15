@@ -30,13 +30,15 @@ with st.sidebar:
     years = sorted(df["Year Signed"].dropna().unique())
     years = [int(y) for y in years if y > 2000]
     if years:
-        year_range = st.slider("Year Signed", min(years), max(years), (min(years), max(years)))
+        default_range = (min(years), max(years))
+        year_range = st.slider("Year Signed", default_range[0], default_range[1], default_range)
     else:
         year_range = None
+        default_range = None
 
 # ── Apply filters ──
 mask = df["Product"].isin(selected_products)
-if year_range:
+if year_range and year_range != default_range:
     mask &= (df["Year Signed"] >= year_range[0]) & (df["Year Signed"] <= year_range[1])
 filtered = df[mask]
 

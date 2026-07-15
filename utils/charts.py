@@ -245,10 +245,10 @@ def quarterly_launches(df: pd.DataFrame,
 
 
 def owner_workload(df: pd.DataFrame,
-                   title: str = "Owner Portfolio — Cohort Mix") -> go.Figure:
+                   title: str = "Account Manager Portfolio — Cohort Mix") -> go.Figure:
     """Stacked horizontal bar showing each owner's school count by cohort."""
     if "Owner" not in df.columns or df["Owner"].isna().all():
-        return _empty_figure("Owner data not available for this selection")
+        return _empty_figure("Account Manager data not available for this selection")
 
     ct = pd.crosstab(df["Owner"], df["Cohort"])
     for c in COHORT_ORDER:
@@ -274,10 +274,10 @@ def owner_workload(df: pd.DataFrame,
 
 
 def owner_performance(df: pd.DataFrame,
-                      title: str = "Owner Performance: Median Kick Off → Launch") -> go.Figure:
+                      title: str = "Account Manager Performance: Median Kick Off → Launch") -> go.Figure:
     """Horizontal bar of median KO→Launch per owner, color-coded by benchmark."""
     if "Owner" not in df.columns or df["Owner"].isna().all():
-        return _empty_figure("Owner data not available for this selection")
+        return _empty_figure("Account Manager data not available for this selection")
 
     phase = "Kick Off → Launch"
     if phase not in df.columns:
@@ -287,7 +287,7 @@ def owner_performance(df: pd.DataFrame,
     owners = owners[owners["count"] >= 3].sort_values("median", ascending=True)
 
     if owners.empty:
-        return _empty_figure("Not enough data for owner performance (need ≥3 schools each)")
+        return _empty_figure("Not enough data for Account Manager performance (need ≥3 schools each)")
 
     colors = ["#2A9D8F" if m <= 42 else "#E9C46A" if m <= 70 else "#E76F51"
               for m in owners["median"]]

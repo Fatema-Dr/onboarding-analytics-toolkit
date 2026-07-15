@@ -78,20 +78,23 @@ PRODUCTS = {
         "column_map": {
             "Contract Start Date (SF)": "Contract Date",
             "Kick Off Call Date": "Kick Off Date",
-            # Handle naming error: some sheets say "Hall Pass" instead of "Visitor Management"
             "Visitor Management Training Session": "Training Date",
-            "Hall Pass Training Session": "Training Date",
             "Visitor Management Launch Date": "Launch Date",
-            "Hall Pass Launch Date": "Launch Date",
             "Post Launch Session Date": "Post Launch Date",
-            "Start Day>> Kick Off": "_phase_contract_ko",
-            "Contract >> Kick Off": "_phase_contract_ko",
         },
     },
 }
 
 # Unified date columns (in pipeline order)
-DATE_COLS = ["Contract Date", "Kick Off Date", "Training Date", "Launch Date", "Post Launch Date"]
+DATE_COLS = [
+    "Contract Date", 
+    "Kick Off Date", 
+    "Portal Setup Date", 
+    "Training Date", 
+    "PreLaunch Call Date", 
+    "Launch Date", 
+    "Post Launch Date"
+]
 
 # Phase definitions (from → to)
 PHASES = [
@@ -186,10 +189,16 @@ def load_all_data() -> pd.DataFrame:
         )
 
     # ── Compute signing quarter/year if not present ──
-    if "Year Signed" not in master.columns and "Contract Date" in master.columns:
-        master["Year Signed"] = master["Contract Date"].dt.year
-    if "Quarter Signed" not in master.columns and "Contract Date" in master.columns:
-        master["Quarter Signed"] = master["Contract Date"].dt.quarter
+    if "Contract Date" in master.columns:
+        if "Year Signed" not in master.columns:
+            master["Year Signed"] = master["Contract Date"].dt.year
+        else:
+            master["Year Signed"] = master["Year Signed"].fillna(master["Contract Date"].dt.year)
+            
+        if "Quarter Signed" not in master.columns:
+            master["Quarter Signed"] = master["Contract Date"].dt.quarter
+        else:
+            master["Quarter Signed"] = master["Quarter Signed"].fillna(master["Contract Date"].dt.quarter)
 
     # ── Compute launch quarter/year ──
     if "Launch Date" in master.columns:
@@ -223,3 +232,16 @@ def get_products() -> list[str]:
 def get_cohorts() -> list[str]:
     """Return the standard cohort order."""
     return ["Onboarding", "Retention", "At Risk", "Cancelled"]
+
+
+def get_expected_date_columns(product: str) -> list[str]:
+    """Return the list of expected date columns for a specific product."""
+    if product not in PRODUCTS:
+        return []
+    expected = []
+    for unified_col in PRODUCTS[product]["column_map"].values():
+        if unified_col in DATE_COLS and unified_col not in expected:
+            expected.append(unified_col)
+    
+    # Sort them in pipeline order
+    return [col for col in DATE_COLS if col in expected]

@@ -47,16 +47,16 @@ st.subheader(f"📋 {row['Name']}")
 
 info_cols = st.columns(3)
 info_cols[0].markdown(f"""
+**External ID:** {row.get('External ID', '—')}
 **Product:** {row.get('Product', '—')}
-**Cohort:** {row.get('Cohort', '—')}
 """)
 info_cols[1].markdown(f"""
-**Owner:** {row.get('Owner', 'Not available')}
-**School Status:** {row.get('School Status (CS)', '—')}
+**Cohort:** {row.get('Cohort', '—')}
+**Onboarding Stage:** {row.get('Onboarding Stage', '—')}
 """)
 info_cols[2].markdown(f"""
-**Onboarding Stage:** {row.get('Onboarding Stage', '—')}
-**External ID:** {row.get('External ID', '—')}
+**Account Manager:** {row.get('Owner', 'Not available')}
+**School Status:** {row.get('School Status (CS)', '—')}
 """)
 
 st.divider()
