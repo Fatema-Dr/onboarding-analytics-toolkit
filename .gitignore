@@ -1,0 +1,23 @@
+# Data files (company confidential — do NOT commit)
+data/*.xlsx
+data/*.csv
+
+# Virtual environment
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
